@@ -126,6 +126,60 @@ and talks to it with the official TypeScript client, `von-sdk`.
 - **Quirk:** Von's calibration makes short lines come back nearly one-hot, so the confidence gate
   rarely trips.
 
+### Why Von (and what it can't do)
+
+The source for the comparison figures is the independent
+[jabr/classifier-benchmark](https://github.com/jabr/classifier-benchmark/blob/main/results/benchmark.md).
+Its tests used identical questions on an Apple Silicon GPU (MPS), with Von 1.1 against Laya
+(`convaiinnovations/laya`). EmoBuff ships Von 1.2.
+
+**Strengths**
+
+| | Von 1.1 | Laya |
+|---|---|---|
+| `choice` accuracy (the question type EmoBuff uses, ≈388 cases) | **84.5%** | 70.2% |
+| Overall accuracy (≈945 cases) | **74.2%** | 58.7% |
+| Rating (`score`) accuracy | **68.6%** | 40.0% |
+| Latency, mean / p95 | 53 / 76 ms | **46 / 55 ms** |
+
+- **More accurate:** about +14 points on multiple-choice questions, at nearly the same speed. Laya is
+  about 7 ms faster on average; either is far below the time it takes to speak a line.
+- **Order-invariant (new in 1.2):** each option is scored against the text alone, never against the
+  other options. Shuffling the pose list can't change the answer (0 flips in Von's tests), whereas
+  Laya changes its answer about 4% of the time.
+- **Calibrated probabilities:** a temperature fitted per input, based on entropy, line length and
+  option count.
+- **Long context:** 8,192 tokens, versus Laya's 512 (of which 192 are shared by the question and all
+  options).
+- **No option-count limit:** Laya's calibration breaks at 11+ options (temperature 0.1), which caps
+  it at 10. Von has no hard limit.
+- **Local, Apache-2.0, official TypeScript client** (`von-sdk`).
+- **Tested here:** 22/30 (73%) on `bun run eval`, 50–60 ms per line on MPS. (Laya was not run on this set.)
+
+**Limitations**
+
+- **No browser build:** Von is PyTorch-only. It has no ONNX export (its 1.2 custom attention makes
+  one non-trivial), so it runs as a Python sidecar and needs about 3.3 GB of downloads. Laya has
+  community ONNX exports that run in a browser tab.
+- **Option text and length:**
+  - No per-option token cap, and no truncation: the tokenizer runs without it. The whole prompt
+    (instructions, the line, and every option description) must fit in 8,192 tokens.
+  - Every option adds to the prompt, and latency grows with its total length. Keep descriptions
+    short; Von's own notes say more than about 20 options saturates.
+  - Von reads each option's DESCRIPTION, not its label, so a description must name its emotion.
+  - `[MASK]` and `[SEP]` in the text are read as real tokens. EmoBuff strips them.
+- **Overconfident on short lines:** the calibration temperature bottoms out at 0.3, so short lines
+  come back near 100%. The API has no temperature override.
+- **One request at a time:** the server has no inference lock, so EmoBuff queues decisions.
+  Several questions in one request run one after another, not in a single pass.
+- **Slow first start:** loading is lazy, and `/health` is up before the model is. EmoBuff waits for a
+  warmup request.
+- **Platforms:** Apple Silicon needs macOS 14+ (torch 2.14). Intel Macs are unsupported. Windows and
+  Linux run CPU-only here (about 0.1–0.5 s per line).
+- **Weaker on some things:** the benchmark found its accuracy drops on unfamiliar domains (v1 → v2:
+  93.6% → 72.4%). Probabilities can land mid-scale on unfamiliar criteria. Jev, TypeSafe's closed
+  model, still scores higher (96.5%).
+
 ## Building and shipping
 
 `bun run build` writes `dist/emobuff-darwin-arm64`, `dist/EmoBuff.app` (ad-hoc signed) and a zip of
