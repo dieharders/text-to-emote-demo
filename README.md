@@ -1,7 +1,7 @@
 # EmoBuff
 
 A pixel-art character studio. Paste a script, press **Play**, and Clawd (the Claude Code mascot)
-reads it aloud line by line in a babbling voice. On each line he steps into an emoji-style pose:
+reads it aloud one sentence (a "line") at a time in a babbling voice. On each line he steps into an emoji-style pose:
 happy, sad, angry, confused and so on. A **decision model** reads each line and scores every pose.
 The UI shows the scores, how confident the model is, and why that pose won.
 
