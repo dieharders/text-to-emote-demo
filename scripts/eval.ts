@@ -1,12 +1,14 @@
 /**
- * Score the labeled sample lines with a decision engine and report how often it agrees.
- * Use it to compare engines and to tune the pose descriptions in src/client/poses/catalog.ts.
+ * Score labeled lines with a decision engine and report how often it agrees. Use it to compare
+ * engines, to tune the pose descriptions in src/client/poses/catalog.ts, and to re-check the
+ * short-sentence rule (`scoringText`) after changing either.
  *
  *   bun run eval                   the default engine (Von; run its setup from the app first)
  *   EB_ENGINE=mock bun run eval    any registered engine
  */
+import { parseScript, scoringText, SHORT_SENTENCE_WORDS, type ScriptLine } from "../src/client/playback/parseScript";
 import { buildPoseQuestion, POSES } from "../src/client/poses/catalog";
-import { LABELED_LINES } from "../src/client/poses/samples";
+import { LABELED_LINES, SAMPLE_LINES } from "../src/client/poses/samples";
 import { createEngine } from "../src/engines";
 import { DEFAULT_GATE, decide } from "../src/shared/decide";
 
@@ -67,6 +69,25 @@ for (const expected of labels) {
   const row = labels.map((got) => String(confusion.get(expected)!.get(got) || ".").padStart(5)).join(" ");
   console.log(`${expected.padEnd(10)}${row}`);
 }
+
+// The sample script the way the app reads it: sentence by sentence, each labeled with its line's
+// pose. Compares the app's scoring (short sentences use their whole line) with scoring every
+// sentence on its own. The labels favour the line rule (every sentence here shares its line's
+// emotion), so read this as "does the rule still help", not as general accuracy.
+const sentences = SAMPLE_LINES.flatMap(({ text, pose }) => parseScript(text).map((line) => ({ line, pose })));
+const tally = async (textOf: (line: ScriptLine) => string) => {
+  let hits = 0;
+  for (const { line, pose } of sentences) {
+    const result = await engine.decide({ text: textOf(line), question });
+    if (decide(result.distribution, DEFAULT_GATE).top === pose) hits++;
+  }
+  return hits;
+};
+const asRead = await tally(scoringText);
+const alone = await tally((line) => line.text);
+console.log(`\nSample script, read by sentence (${sentences.length} sentences):`);
+console.log(`  as the app scores it (≤${SHORT_SENTENCE_WORDS} words → whole line): ${asRead}/${sentences.length}`);
+console.log(`  each sentence on its own:                ${alone}/${sentences.length}`);
 
 await engine.stop();
 process.exit(0);

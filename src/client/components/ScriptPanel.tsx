@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import type { Decision } from "../../shared/decide";
 import { pct } from "../lib/format";
 import { isPoseId, poseById } from "../poses/catalog";
-import type { ScriptLine } from "../playback/parseScript";
+import { scoringText, type ScriptLine } from "../playback/parseScript";
 import type { LineDecision } from "../playback/usePlayback";
 
 export type ScriptView = "edit" | "lines";
@@ -17,7 +17,7 @@ export function ScriptPanel({
   view,
   current,
   playing,
-  decisions,
+  decisionOf,
   judge,
   onScript,
   onView,
@@ -28,9 +28,9 @@ export function ScriptPanel({
   view: ScriptView;
   current: number;
   playing: boolean;
-  decisions: Record<string, LineDecision>;
+  decisionOf: (line: ScriptLine) => LineDecision | undefined;
   /** Applies the decision rule (current thresholds) to a line's result. */
-  judge: (text: string) => Decision | null;
+  judge: (line: ScriptLine) => Decision | null;
   onScript(script: string): void;
   onView(view: ScriptView): void;
   onAnalyze(): void;
@@ -78,9 +78,10 @@ export function ScriptPanel({
         <ol className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
           {lines.map((line) => {
             const isCurrent = line.index === current;
-            const decided = decisions[line.text];
-            const verdict = judge(line.text);
+            const decided = decisionOf(line);
+            const verdict = judge(line);
             const pose = verdict && isPoseId(verdict.pose) ? poseById[verdict.pose] : null;
+            const byLine = scoringText(line) !== line.text;
             return (
               <li
                 key={line.index}
@@ -95,7 +96,10 @@ export function ScriptPanel({
                 <span className={`min-w-0 flex-1 ${isCurrent ? "text-ivory" : "text-muted"}`}>{line.text}</span>
                 <span className="shrink-0 text-right font-mono text-xs">
                   {pose && verdict ? (
-                    <span className={verdict.gated ? "text-dim" : "text-ivory"} title={verdict.reason}>
+                    <span
+                      className={verdict.gated ? "text-dim" : "text-ivory"}
+                      title={byLine ? `${verdict.reason} · a short sentence, so its whole line was scored` : verdict.reason}
+                    >
                       {pose.emoji} {pose.label} {pct(verdict.pTop)}
                     </span>
                   ) : decided?.error ? (

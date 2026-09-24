@@ -26,6 +26,7 @@ function Threshold({ label, value, max, step, onChange }: { label: string; value
 
 export function DecisionPanel({
   line,
+  scoredText,
   decision,
   result,
   error,
@@ -34,6 +35,8 @@ export function DecisionPanel({
   onGate,
 }: {
   line: string | null;
+  /** What the engine actually scored, when that is not just `line` (a short sentence's whole line). */
+  scoredText?: string | null;
   decision: Decision | null;
   result: DecisionResult | undefined;
   error: string | undefined;
@@ -48,7 +51,13 @@ export function DecisionPanel({
     <div className="flex h-full flex-col gap-4 rounded-2xl border border-line bg-panel p-5">
       <div className="flex items-baseline justify-between gap-3">
         <span className="shrink-0 text-sm font-medium">Decision</span>
-        <span className="truncate text-xs text-dim">{line ? `“${line}”` : "No line yet"}</span>
+        <span
+          className="truncate text-xs text-dim"
+          title={scoredText ? `A short sentence, so the engine scored its whole line: “${scoredText}”` : undefined}
+        >
+          {line ? `“${line}”` : "No line yet"}
+          {scoredText && <span className="text-clay"> · scored with its line</span>}
+        </span>
       </div>
 
       <div className="flex items-center gap-3">

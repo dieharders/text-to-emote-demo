@@ -4,9 +4,11 @@
  *   for each line → get its decision (prefetching the next two) → show the pose
  *                 → speak it with the pose's voice → short pause → next line
  *
- * Decisions come from the engine through `/api/decide` and are cached by line text, so replays
- * and "Analyze" never ask twice. The pose itself is chosen by the caller (`choosePose`), which
- * applies the decision rule with the current thresholds.
+ * Decisions come from the engine through `/api/decide`, cached by the text that was scored: the
+ * sentence, or for a short one its whole line (see `scoringText`). So replays and "Analyze" never
+ * ask twice, and the short sentences of one line share a single request. Look one up with
+ * `decisionOf(line)`. The pose itself is chosen by the caller (`choosePose`), which applies the
+ * decision rule with the current thresholds.
  */
 import { useCallback, useRef, useState } from "react";
 import type { ChoiceQuestion, DecisionResult } from "../../shared/api";
@@ -14,7 +16,7 @@ import { ApiError, api } from "../lib/api";
 import { poseById, type PoseId } from "../poses/catalog";
 import type { BabbleVoice } from "../voice/babble";
 import { planSpeech } from "../voice/planSpeech";
-import type { ScriptLine } from "./parseScript";
+import { scoringText, type ScriptLine } from "./parseScript";
 
 export interface LineDecision {
   result?: DecisionResult;
@@ -52,7 +54,7 @@ export function usePlayback(opts: {
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
-  /** The decision for a line of text: cached, and shared by concurrent callers. */
+  /** The decision for a piece of text: cached, and shared by concurrent callers. */
   const decisionFor = useCallback((text: string): Promise<LineDecision> => {
     let pending = cache.current.get(text);
     if (!pending) {
@@ -95,8 +97,8 @@ export function usePlayback(opts: {
       for (let i = 0; i < lines.length && !signal.aborted; i++) {
         setState((s) => ({ ...s, current: i, phase: "deciding" }));
         // Queue this line and the next two; the engine answers them in order.
-        lines.slice(i, i + 1 + PREFETCH).forEach((line) => void decisionFor(line.text));
-        const decision = await decisionFor(lines[i]!.text);
+        lines.slice(i, i + 1 + PREFETCH).forEach((line) => void decisionFor(scoringText(line)));
+        const decision = await decisionFor(scoringText(lines[i]!));
         if (signal.aborted) break;
 
         const pose = optsRef.current.choosePose(decision.result);
@@ -117,7 +119,10 @@ export function usePlayback(opts: {
   );
 
   /** Score every line without reading it (fills in the Lines list). */
-  const analyze = useCallback((lines: ScriptLine[]) => lines.forEach((line) => void decisionFor(line.text)), [decisionFor]);
+  const analyze = useCallback((lines: ScriptLine[]) => lines.forEach((line) => void decisionFor(scoringText(line))), [decisionFor]);
 
-  return { state, decisions, play, stop, analyze };
+  /** A line's decision, if it has one yet. */
+  const decisionOf = useCallback((line: ScriptLine): LineDecision | undefined => decisions[scoringText(line)], [decisions]);
+
+  return { state, decisionOf, play, stop, analyze };
 }

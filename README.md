@@ -54,9 +54,15 @@ main.ts ─ native window (webview-bun) ──▶ http://127.0.0.1:<port>
                                                   └─ von: Python sidecar ◀─ von-sdk (HTTP)
 ```
 
-For each line of the script, the client does four things:
-1. Asks `/api/decide` to score the line against every pose's description (one multiple-choice
-   question).
+The script is read one sentence at a time. For each sentence, the client does four things:
+1. Asks `/api/decide` to score it against every pose's description (one multiple-choice question).
+   A sentence of four words or fewer ("Oh no.", "We did it!") says too little on its own, so it is
+   scored with its whole script line instead.
+   - On the sample script this took Von from 12 to 15 correct out of 20 sentences, and it didn't
+     hurt lines whose emotion changes partway through.
+   - Sending the neighbouring sentences as context made results worse: Von lets their emotions
+     bleed in. So the rule never reaches across a line break.
+   - `bun run eval` re-checks it.
 2. Applies the **decision rule** (`src/shared/decide.ts`). The top pose wins unless its score or its
    lead over the runner-up is below the thresholds, in which case Clawd stays neutral.
 3. Speaks the line with a Web Audio babble tuned to the pose.

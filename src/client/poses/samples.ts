@@ -1,16 +1,20 @@
 import type { PoseId } from "./catalog";
 
-/** The script the app opens with: one line for each pose. */
-export const SAMPLE_SCRIPT = `Hi there! I'm Clawd, and I'm so glad you're here.
-Wait, what?! I'm totally shocked. Did you just delete the database?
-Oh no. I'm so sorry, that's really disappointing news.
-Ugh, why does this build keep failing? This is so frustrating!
-Hmm, let me think about how we could fix this.
-I'm puzzled. I don't understand what this error even means.
-We did it! All the tests pass! I'm so thrilled, let's celebrate!
-Honestly, I love working on this project with you.
-Is something moving in the dark? I'm getting scared.
-Okay. The next meeting starts at three o'clock.`;
+/** The script the app opens with: one line (one emotional beat) for each pose. */
+export const SAMPLE_LINES: { text: string; pose: PoseId }[] = [
+  { pose: "happy", text: "Hi there! I'm Clawd, and I'm so glad you're here." },
+  { pose: "surprised", text: "Wait, what?! I'm totally shocked. Did you just delete the database?" },
+  { pose: "sad", text: "Oh no. I'm so sorry, that's really disappointing news." },
+  { pose: "angry", text: "Ugh, why does this build keep failing? This is so frustrating!" },
+  { pose: "thinking", text: "Hmm, let me think about how we could fix this." },
+  { pose: "confused", text: "I'm puzzled. I don't understand what this error even means." },
+  { pose: "excited", text: "We did it! All the tests pass! I'm so thrilled, let's celebrate!" },
+  { pose: "love", text: "Honestly, I love working on this project with you." },
+  { pose: "scared", text: "Is something moving in the dark? I'm getting scared." },
+  { pose: "neutral", text: "Okay. The next meeting starts at three o'clock." },
+];
+
+export const SAMPLE_SCRIPT = SAMPLE_LINES.map((line) => line.text).join("\n");
 
 /**
  * Labeled lines for `bun run eval`: three per pose, mostly WITHOUT the words in the pose

@@ -15,7 +15,7 @@ import { PosePalette } from "./components/PosePalette";
 import { ScriptPanel, type ScriptView } from "./components/ScriptPanel";
 import { Stage } from "./components/Stage";
 import { useEngine } from "./hooks/useEngine";
-import { parseScript } from "./playback/parseScript";
+import { parseScript, scoringText, type ScriptLine } from "./playback/parseScript";
 import { usePlayback } from "./playback/usePlayback";
 import { buildPoseQuestion, isPoseId, type PoseId } from "./poses/catalog";
 import { SAMPLE_SCRIPT } from "./poses/samples";
@@ -43,20 +43,23 @@ export function App() {
   }, []);
 
   const playback = usePlayback({ voice, question, choosePose });
-  const { state, decisions } = playback;
+  const { state, decisionOf } = playback;
   const playing = state.status === "playing";
 
   const judge = useCallback(
-    (text: string): Decision | null => {
-      const result = decisions[text]?.result;
+    (line: ScriptLine): Decision | null => {
+      const result = decisionOf(line)?.result;
       return result ? decide(result.distribution, gate) : null;
     },
-    [decisions, gate],
+    [decisionOf, gate],
   );
 
-  const currentLine = playing && state.current >= 0 ? (state.lines[state.current]?.text ?? null) : null;
-  const lineDecision = currentLine ? decisions[currentLine] : undefined;
+  const currentLine = playing && state.current >= 0 ? (state.lines[state.current] ?? null) : null;
+  const lineDecision = currentLine ? decisionOf(currentLine) : undefined;
   const decision = currentLine ? judge(currentLine) : null;
+  // A short sentence is scored with its whole line; say so rather than show a score for text the
+  // engine never saw on its own.
+  const scoredText = currentLine && scoringText(currentLine) !== currentLine.text ? currentLine.source : null;
 
   // Reading: the current line's pose. Idle: whatever pose is being hovered in the palette.
   const stagePose: PoseId = playing ? (decision && isPoseId(decision.pose) ? decision.pose : "neutral") : (preview ?? "neutral");
@@ -112,7 +115,7 @@ export function App() {
       <main className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] grid-rows-[minmax(0,1fr)_auto] gap-6 p-6">
         <Stage
           pose={stagePose}
-          line={currentLine}
+          line={currentLine?.text ?? null}
           voice={voice}
           playing={playing}
           canPlay={lines.length > 0}
@@ -128,7 +131,7 @@ export function App() {
           view={view}
           current={playing ? state.current : -1}
           playing={playing}
-          decisions={decisions}
+          decisionOf={decisionOf}
           judge={judge}
           onScript={setScript}
           onView={setView}
@@ -138,7 +141,8 @@ export function App() {
           }}
         />
         <DecisionPanel
-          line={currentLine}
+          line={currentLine?.text ?? null}
+          scoredText={scoredText}
           decision={decision}
           result={lineDecision?.result}
           error={lineDecision?.error}
