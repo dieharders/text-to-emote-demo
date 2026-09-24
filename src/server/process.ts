@@ -5,9 +5,9 @@
  * obrew-cli `src/engine/ports.ts` / `src/engine/running.ts`.
  */
 import type { Subprocess } from "bun";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, readdir, rm } from "node:fs/promises";
 import { createServer } from "node:net";
-import { dirname } from "node:path";
+import { join } from "node:path";
 
 const IS_WIN = process.platform === "win32";
 
@@ -21,7 +21,7 @@ const live = new Set<Child>();
  *
  * NOT detached: a child in our process group also receives a terminal's Ctrl+C, which is what we
  * want for a server that should never outlive the app. A hard kill of the app (Task Manager,
- * `kill -9`) is covered by the pid file instead; see `reapStalePid`.
+ * `kill -9`) is covered by the child records instead; see `reapOrphans`.
  */
 export function spawnHidden(
   cmd: string[],
@@ -124,14 +124,21 @@ export function freePort(): Promise<number> {
   });
 }
 
-/** Remember a child's pid on disk, so the next launch can clean up after a hard kill. */
-export async function writePidFile(path: string, pid: number): Promise<void> {
-  await mkdir(dirname(path), { recursive: true });
-  await Bun.write(path, JSON.stringify({ pid, ownerPid: process.pid, startedAt: new Date().toISOString() }));
+/**
+ * Records of running children, one file per child (`<dir>/<pid>.json`), so a later launch can
+ * clean up after a hard kill (a crash, Task Manager, `kill -9`) when no exit handler ran.
+ *
+ * ONE FILE PER CHILD, not one shared pid file: two copies of the app (`bun run dev` beside the
+ * app window, say) each run their own child, and with a shared file the second copy erased the
+ * first one's record, leaving that child unreapable. Pattern from obrew-cli `src/engine/running.ts`.
+ */
+export async function recordChild(dir: string, pid: number): Promise<void> {
+  await mkdir(dir, { recursive: true });
+  await Bun.write(join(dir, `${pid}.json`), JSON.stringify({ pid, ownerPid: process.pid, startedAt: new Date().toISOString() }));
 }
 
-export async function removePidFile(path: string): Promise<void> {
-  await rm(path, { force: true }).catch(() => {});
+export async function forgetChild(dir: string, pid: number): Promise<void> {
+  await rm(join(dir, `${pid}.json`), { force: true }).catch(() => {});
 }
 
 function isAlive(pid: number): boolean {
@@ -156,28 +163,38 @@ function describeProcess(pid: number): string {
 }
 
 /**
- * Kill the child a previous run left behind, if the pid file names one that is still alive.
+ * Kill children that earlier runs left behind, and drop the records of children that are gone.
  *
- * A pid can be reused by an unrelated process after a reboot, so the kill only happens when the
- * process still looks like ours: its command line (POSIX) or image name (Windows) must contain
- * `looksLike`, and the app that started it must be gone.
+ * A record is only acted on when the app that started it is dead: a live owner is another copy of
+ * the app, still using its child. And because a pid can be reused by an unrelated process after a
+ * reboot, the kill also needs the process to still look like ours: its command line (POSIX) or
+ * image name (Windows) must contain `looksLike`.
  */
-export async function reapStalePid(path: string, looksLike: string, log: (line: string) => void): Promise<void> {
-  const record = (await Bun.file(path)
-    .json()
-    .catch(() => null)) as { pid?: number; ownerPid?: number } | null;
-  if (!record) return; // no pid file: nothing was left behind
-  const pid = record.pid;
-  const owner = record.ownerPid;
-  if (typeof pid === "number" && isAlive(pid) && !(typeof owner === "number" && owner !== process.pid && isAlive(owner))) {
-    if (describeProcess(pid).toLowerCase().includes(looksLike.toLowerCase())) {
-      try {
-        process.kill(pid, "SIGKILL");
-        log(`Stopped a leftover engine process from a previous run (pid ${pid}).`);
-      } catch {
-        // Exited in the meantime.
+export async function reapOrphans(dir: string, looksLike: string, log: (line: string) => void): Promise<void> {
+  let names: string[];
+  try {
+    names = await readdir(dir);
+  } catch {
+    return; // no records yet
+  }
+  for (const name of names.filter((n) => n.endsWith(".json"))) {
+    const path = join(dir, name);
+    const record = (await Bun.file(path)
+      .json()
+      .catch(() => null)) as { pid?: number; ownerPid?: number } | null;
+    const pid = record?.pid;
+    const owner = record?.ownerPid;
+    if (typeof pid === "number" && isAlive(pid)) {
+      if (typeof owner === "number" && owner !== process.pid && isAlive(owner)) continue; // another copy's
+      if (describeProcess(pid).toLowerCase().includes(looksLike.toLowerCase())) {
+        try {
+          process.kill(pid, "SIGKILL");
+          log(`Stopped a leftover engine process from an earlier run (pid ${pid}).`);
+        } catch {
+          // Exited in the meantime.
+        }
       }
     }
+    await rm(path, { force: true }).catch(() => {}); // reaped, gone, or unreadable
   }
-  await removePidFile(path);
 }

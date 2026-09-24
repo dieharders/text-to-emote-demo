@@ -23,7 +23,8 @@ export interface VonPaths {
   python: string;
   weights: string;
   logs: string;
-  pidFile: string;
+  /** One record per running Von process, for cleanup after a crash (see `reapOrphans`). */
+  runningDir: string;
   requirements: string;
   /** Written after a successful package install; holds a hash of what was installed. */
   packagesMarker: string;
@@ -38,7 +39,7 @@ export function vonPaths(root: string): VonPaths {
     python: win ? join(root, "venv", "Scripts", "python.exe") : join(root, "venv", "bin", "python"),
     weights: join(root, WEIGHTS.dir),
     logs: join(root, "logs"),
-    pidFile: join(root, "von.pid"),
+    runningDir: join(root, "running"),
     requirements: join(root, "requirements.txt"),
     packagesMarker: join(root, "venv", ".emobuff-packages"),
   };

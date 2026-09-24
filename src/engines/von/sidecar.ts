@@ -13,7 +13,7 @@ import { mkdir } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import { join } from "node:path";
 import { VonClient, choice } from "von-sdk";
-import { freePort, killTree, readLines, reapStalePid, removePidFile, spawnHidden, writePidFile } from "../../server/process";
+import { forgetChild, freePort, killTree, readLines, reapOrphans, recordChild, spawnHidden } from "../../server/process";
 import { abortError } from "../types";
 import { VON_MODEL } from "./manifest";
 import type { VonPaths } from "./setup";
@@ -33,7 +33,7 @@ export async function startSidecar(
   p: VonPaths,
   opts: { signal: AbortSignal; log: (line: string) => void; step: (step: string) => void },
 ): Promise<Sidecar> {
-  await reapStalePid(p.pidFile, "von.cli", opts.log);
+  await reapOrphans(p.runningDir, "von.cli", opts.log);
   await mkdir(p.logs, { recursive: true });
 
   const port = await freePort();
@@ -57,7 +57,7 @@ export async function startSidecar(
       },
     },
   );
-  await writePidFile(p.pidFile, child.pid);
+  await recordChild(p.runningDir, child.pid);
 
   // Everything Von prints goes to logs/von.log and the app's log stream; two lines are also read
   // for meaning: the device it picked, and whether its calibration file loaded.
@@ -84,7 +84,7 @@ export async function startSidecar(
   const exited = child.exited.then(async (code) => {
     await pumps;
     logFile.end();
-    await removePidFile(p.pidFile);
+    await forgetChild(p.runningDir, child.pid);
     return code;
   });
 
