@@ -19,7 +19,7 @@ export function SpeechBubble({ text, voice }: { text: string | null; voice: Babb
   }, [text, voice]);
 
   return (
-    <div className="relative min-h-[4.5rem] w-full rounded-2xl border border-line bg-panel px-5 py-3 text-lg leading-snug">
+    <div className="relative min-h-[8rem] w-full rounded-2xl border border-line bg-panel px-6 py-4 text-[clamp(1.5rem,3.2vw,3rem)] leading-tight font-medium">
       {text ? (
         text.split(/\s+/).map((word, i) => (
           <span key={i} className={i <= spoken ? "text-ivory" : "text-dim"}>
