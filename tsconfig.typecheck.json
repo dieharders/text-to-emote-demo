@@ -1,0 +1,16 @@
+{
+  // Typecheck-only config (`bun run typecheck`). It exists so the `paths` entry below stays OUT
+  // of tsconfig.json: Bun's bundler honours tsconfig `paths` too, and pointing it at a .d.ts
+  // would bundle a declaration with no runtime code. `Webview` would silently be undefined and
+  // the app would build clean yet show no window. The bundler reads tsconfig.json; tsc reads this.
+  //
+  // Why the stub at all: webview-bun ships raw .ts that does not pass `strict`, and
+  // `skipLibCheck` only covers .d.ts files. See types/webview-bun.d.ts.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "webview-bun": ["./types/webview-bun.d.ts"]
+    }
+  },
+  "include": ["src", "scripts", "types", "*.ts"]
+}

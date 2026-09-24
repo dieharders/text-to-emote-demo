@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+# Built by `bun run build:css` (or the dev watcher) from src/client/styles.css.
+src/client/generated.css
+
+# Source runs keep their downloads and logs here (EB_DATA_ROOT in .env), never in the
+# installed app's data folder.
+.dev-data/
+
+.env
+*.log
+.DS_Store
+Thumbs.db

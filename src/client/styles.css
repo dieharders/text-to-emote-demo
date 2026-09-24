@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Design tokens: Anthropic's slate/ivory with Clawd's orange as the accent. */
+@theme {
+  --color-ink: #141413;
+  --color-panel: #1e1d1b;
+  --color-raised: #282724;
+  --color-line: #36342f;
+  --color-ivory: #faf9f5;
+  --color-muted: #a39f95;
+  --color-dim: #6e6a62;
+  --color-clay: #d97757;
+  --color-clay-dark: #c6613f;
+  --color-ok: #84c38d;
+  --color-warn: #e6b450;
+  --color-bad: #ef6b6f;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-ivory);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Pixel art stays crisp at any display scale. */
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* Indeterminate progress: a stripe sliding across the bar. */
+@keyframes slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+.progress-indeterminate {
+  animation: slide 1.4s ease-in-out infinite;
+}
+
+input[type="range"] {
+  accent-color: var(--color-clay);
+}

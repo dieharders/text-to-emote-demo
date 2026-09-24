@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    // The automatic JSX runtime: components never need `import React`. Bun's bundler reads
+    // this same setting, so the typechecker and the build cannot drift apart.
+    "jsx": "react-jsx",
+    "types": ["@types/bun"]
+  },
+  // Must match tsconfig.typecheck.json, which differs ONLY in `paths` (see there for why).
+  "include": ["src", "scripts", "types", "*.ts"]
+}
