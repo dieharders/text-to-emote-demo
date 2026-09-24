@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "EmoBuff: a pixel-art character studio. Clawd reads your script aloud and emotes each line, driven by a swappable decision model.",
+  "description": "EmoBuff: A character studio for realtime vtubers. Clawd reads your script aloud and emotes each line, driven by a decision model.",
   "scripts": {
     "dev": "bun --hot scripts/dev.ts",
     "app": "bun run build:css && EB_DATA_ROOT=.dev-data bun run main.ts",
