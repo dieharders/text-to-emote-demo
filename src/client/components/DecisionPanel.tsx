@@ -45,7 +45,7 @@ export function DecisionPanel({
   const top = decision && isPoseId(decision.top) ? poseById[decision.top] : null;
 
   return (
-    <div className="flex h-full flex-col gap-3 rounded-2xl border border-line bg-panel p-4">
+    <div className="flex h-full flex-col gap-4 rounded-2xl border border-line bg-panel p-5">
       <div className="flex items-baseline justify-between gap-3">
         <span className="shrink-0 text-sm font-medium">Decision</span>
         <span className="truncate text-xs text-dim">{line ? `“${line}”` : "No line yet"}</span>

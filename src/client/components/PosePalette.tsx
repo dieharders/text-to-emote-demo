@@ -8,12 +8,12 @@ export function PosePalette({ decision, onPreview }: { decision: Decision | null
   const scores = new Map(decision?.ranked.map((r) => [r.label, r.p]) ?? []);
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-line bg-panel p-4">
-      <div className="mb-2 flex items-baseline justify-between gap-3">
+    <div className="flex h-full flex-col rounded-2xl border border-line bg-panel p-5">
+      <div className="mb-4 flex items-baseline justify-between gap-3">
         <span className="shrink-0 text-sm font-medium">Poses</span>
         <span className="truncate text-xs text-dim">what the engine scored · hover to preview</span>
       </div>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-5 gap-3">
         {POSES.map((pose) => {
           const p = scores.get(pose.id);
           const chosen = decision?.pose === pose.id;

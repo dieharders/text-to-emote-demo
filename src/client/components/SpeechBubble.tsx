@@ -49,7 +49,7 @@ export function SpeechBubble({ text, voice }: { text: string | null; voice: Babb
   }, [text]);
 
   return (
-    <div className="relative h-40 w-full shrink-0 rounded-2xl border border-line bg-panel px-6 py-4">
+    <div className="relative h-40 w-full shrink-0 rounded-2xl border border-line bg-panel px-6 py-5">
       {/* The inner box is what gets measured; overflow is a last resort past MIN_FONT. */}
       <div ref={boxRef} className="h-full overflow-y-auto">
         <div ref={textRef} className="font-medium leading-tight">

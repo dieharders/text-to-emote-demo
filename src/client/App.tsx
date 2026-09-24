@@ -95,7 +95,7 @@ export function App() {
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-center gap-4 border-b border-line px-5 py-3">
+      <header className="flex items-center gap-4 border-b border-line px-6 py-3">
         <div>
           <div className="text-lg font-semibold tracking-tight">
             Emo<span className="text-clay">Buff</span>
@@ -107,7 +107,9 @@ export function App() {
         </div>
       </header>
 
-      <main className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 p-4">
+      {/* One grid for all four panels so the top and bottom rows share column edges. The bottom row
+          is sized by its content (not a fixed height), so its panels can never spill out of it. */}
+      <main className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] grid-rows-[minmax(0,1fr)_auto] gap-6 p-6">
         <Stage
           pose={stagePose}
           line={currentLine}
@@ -135,10 +137,6 @@ export function App() {
             playback.analyze(lines);
           }}
         />
-      </main>
-
-      {/* Sized by its content (not a fixed height), so the panels can never spill out of it. */}
-      <footer className="grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-4 px-4 pb-4">
         <DecisionPanel
           line={currentLine}
           decision={decision}
@@ -149,7 +147,7 @@ export function App() {
           onGate={setGate}
         />
         <PosePalette decision={decision} onPreview={setPreview} />
-      </footer>
+      </main>
     </div>
   );
 }

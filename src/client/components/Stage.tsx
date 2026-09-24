@@ -54,7 +54,7 @@ export function Stage({
   const def = poseById[pose];
 
   return (
-    <div className="flex h-full min-h-0 flex-col items-center gap-3">
+    <div className="flex h-full min-h-0 flex-col items-center gap-4">
       <SpeechBubble text={line} voice={voice} />
 
       <div
@@ -69,7 +69,7 @@ export function Stage({
         </div>
       </div>
 
-      <div className="flex w-full items-center gap-4">
+      <div className="flex w-full shrink-0 items-center gap-4 rounded-2xl border border-line bg-panel px-4 py-3">
         {playing ? (
           <button onClick={onStop} className="w-28 rounded-lg bg-raised px-4 py-2 font-medium hover:bg-line">
             ■ Stop

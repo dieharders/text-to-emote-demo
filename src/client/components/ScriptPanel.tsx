@@ -52,7 +52,7 @@ export function ScriptPanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col rounded-2xl border border-line bg-panel">
-      <div className="flex items-center gap-1 border-b border-line px-3 py-2">
+      <div className="flex items-center gap-1 border-b border-line px-4 py-3">
         <span className="mr-2 text-sm font-medium">Script</span>
         {tab("edit", "Edit")}
         {tab("lines", `Lines (${lines.length})`)}
@@ -72,10 +72,10 @@ export function ScriptPanel({
           onChange={(e) => onScript(e.target.value)}
           spellCheck={false}
           placeholder="One line per step. Clawd reads them in order."
-          className="min-h-0 flex-1 resize-none bg-transparent px-4 py-3 font-mono text-sm leading-7 outline-none placeholder:text-dim"
+          className="min-h-0 flex-1 resize-none bg-transparent px-5 py-4 font-mono text-sm leading-7 outline-none placeholder:text-dim"
         />
       ) : (
-        <ol className="min-h-0 flex-1 overflow-y-auto px-2 py-2">
+        <ol className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
           {lines.map((line) => {
             const isCurrent = line.index === current;
             const decided = decisions[line.text];
