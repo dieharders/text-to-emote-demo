@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AvatarCanvas } from "../avatar/AvatarCanvas";
 import { SIZE } from "../avatar/grid";
+import { rangeFill } from "../lib/format";
 import { poseById, type PoseId } from "../poses/catalog";
 import type { BabbleVoice } from "../voice/babble";
 import { SpeechBubble } from "./SpeechBubble";
@@ -85,7 +86,7 @@ export function Stage({
         <span className="text-xs text-dim">or press Space</span>
         <label className="ml-auto flex items-center gap-2 text-sm text-muted">
           Volume
-          <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => onVolume(Number(e.target.value))} />
+          <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => onVolume(Number(e.target.value))} style={rangeFill(volume, 1)} />
         </label>
       </div>
     </div>

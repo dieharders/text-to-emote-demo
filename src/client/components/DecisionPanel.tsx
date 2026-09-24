@@ -1,7 +1,7 @@
 /** Why Clawd looks the way it does: the decision for the current line, its numbers, and the thresholds. */
 import type { DecisionResult } from "../../shared/api";
 import type { Decision, GateOptions } from "../../shared/decide";
-import { pct } from "../lib/format";
+import { pct, rangeFill } from "../lib/format";
 import { isPoseId, poseById } from "../poses/catalog";
 
 function Metric({ label, value, hint }: { label: string; value: string; hint?: string }) {
@@ -19,7 +19,7 @@ function Threshold({ label, value, max, step, onChange }: { label: string; value
       <span className="text-muted">
         {label} <span className="font-mono text-ivory">{pct(value)}</span>
       </span>
-      <input type="range" min={0} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full" />
+      <input type="range" min={0} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} style={rangeFill(value, max)} className="w-full" />
     </label>
   );
 }
