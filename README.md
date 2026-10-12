@@ -17,6 +17,8 @@ The UI shows the scores, how confident the model is, and why that pose won.
 This is a starter project, meant to grow into a studio (custom avatars, poses driven by video or
 audio, video export, streaming). It is kept small, modular and easy to extend.
 
+https://github.com/user-attachments/assets/3ed3bfe6-2089-460a-9ce5-f1fc22309d86
+
 ## Quick start
 
 Requires [Bun](https://bun.sh) 1.4+.
