@@ -1,9 +1,9 @@
 {
-  "name": "emobuff",
+  "name": "text-to-emote-demo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "EmoBuff: A character studio for realtime vtubers. Clawd reads your script aloud and emotes each line, driven by a 'System One' decision model.",
+  "description": "A character studio for realtime vtubers. Clawd reads your script aloud and emotes each line, driven by a 'System One' decision model.",
   "scripts": {
     "dev": "bun --hot scripts/dev.ts",
     "app": "bun run build:css && EB_DATA_ROOT=.dev-data bun run main.ts",
