@@ -206,3 +206,10 @@ With no native window available, the app prints its URL instead. `--headless` do
 
 Installers and a release workflow aren't set up yet. When they're needed, port motionbuff's
 `make-installer.ts` and `release.yml`.
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or sponsored by
+Anthropic. Clawd, Claude and Claude Code are Anthropic's trademarks, and the Clawd character
+design and colors belong to Anthropic. They're used here only to show the character studio, and
+aren't covered by this project's license. For demonstration purposes only.
